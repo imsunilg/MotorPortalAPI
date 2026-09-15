@@ -18,7 +18,7 @@ public class BatchSummaryCountersDto
     public int TotalRecords { get; set; }
     public int ValidRecords { get; set; }
     public int InvalidRecords { get; set; }
-    public int PendingBatchProcessing { get; set; }
+    public int PendingProcessing { get; set; }
     public int PaymentPending { get; set; }
     public int PaymentProcessed { get; set; }
 }

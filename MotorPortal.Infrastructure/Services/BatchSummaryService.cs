@@ -86,7 +86,7 @@ public class BatchSummaryService : IBatchSummaryService
             TotalRecords = rows.Sum(r => r.TotalRecords),
             ValidRecords = rows.Sum(r => r.ValidRecords),
             InvalidRecords = rows.Sum(r => r.InvalidRecords),
-            PendingBatchProcessing = rows.Sum(r => r.PendingProcessing),
+            PendingProcessing = rows.Sum(r => r.PendingProcessing),
             PaymentPending = rows.Sum(r => r.PaymentPending),
             PaymentProcessed = rows.Sum(r => r.PaymentProcessed)
         };
