@@ -7,3 +7,5 @@ appsettings.Local.json
 *.log
 publish/
 .idea/
+MotorPortal.API/wwwroot/certificates/*.pdf
+!MotorPortal.API/wwwroot/certificates/.gitkeep

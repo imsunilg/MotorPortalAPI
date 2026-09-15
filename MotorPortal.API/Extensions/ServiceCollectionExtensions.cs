@@ -118,6 +118,11 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<IExcelBatchService, ExcelBatchService>();
+        services.AddScoped<IBatchProcessingService, BatchProcessingService>();
+        services.AddScoped<IPaymentTaggingService, PaymentTaggingService>();
+        services.AddScoped<IPolicyCertificateService, PolicyCertificateService>();
+        services.AddScoped<IPfGatewayService, MockPfService>();
 
         return services;
     }

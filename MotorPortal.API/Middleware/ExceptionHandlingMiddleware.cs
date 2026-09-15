@@ -46,6 +46,7 @@ public class ExceptionHandlingMiddleware
     {
         return ex switch
         {
+            NotFoundException => ((int)HttpStatusCode.NotFound, ex.Message),
             BusinessRuleException => ((int)HttpStatusCode.BadRequest, ex.Message),
             ArgumentException => ((int)HttpStatusCode.BadRequest, ex.Message),
             _ => ((int)HttpStatusCode.InternalServerError, "An unexpected error occurred.")
