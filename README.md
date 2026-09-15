@@ -185,3 +185,23 @@ gateway later only requires a new class implementing `IPfGatewayService`.
 - [x] Excel upload, batch validation/premium/GST/proposal orchestration
 - [x] Payment tagging, policy generation, certificate PDF, bulk print
 - [x] Batch summary, CD balance, reports, search & print, policy cancel, audit logging
+
+## Known limitations / not yet implemented
+
+Verified end-to-end in a full integration pass (2026-09-15) through the real
+running Angular UI in a headless browser, against the real API and database:
+login, dashboard product/process selection, Excel batch upload, batch
+processing, invalid-record clearing, payment tagging (including a real
+insufficient-CD-balance case surfaced without blocking other rows in the
+same batch), certificate view/download (`%PDF` bytes confirmed), bulk print
+to `PRINTED`, search & print by engine number, Policy Issue Report export
+(non-empty `.xlsx` confirmed), and policy cancel upload including re-upload
+rejection ("Policy already cancelled"). No API-level bugs were found during
+this pass; the one bug hit (an internal `master_policy_id` leaking into the
+insufficient-CD-balance error message) was in `sp_tag_payment` and has been
+fixed in MotorPortalDB.
+
+No known integration-level limitations beyond what is already documented
+above — in particular, the PF (payment facilitator) gateway remains a
+simulated `MockPfService` rather than a real external HTTP integration, by
+design for this environment.
