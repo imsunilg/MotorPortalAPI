@@ -78,6 +78,15 @@ Open `http://localhost:<port>/swagger` in a browser (Development environment onl
 **Authorize** button and paste a JWT (`Bearer <token>`) obtained from `POST /api/auth/login` to
 call protected endpoints from the UI.
 
+Multipart file-upload actions (`/api/batches/upload`, `/api/policies/cancel-upload`) need a small
+Swashbuckle workaround to appear at all: Swashbuckle cannot generate an operation for an action
+parameter explicitly bound `[FromForm] IFormFile`, so the batch upload binds through a single
+`[FromForm] BatchUploadRequest` wrapper (`MotorPortal.API/Models/BatchUploadRequest.cs`) instead of
+separate scalar + file parameters, the cancel-upload file parameter drops the redundant `[FromForm]`
+attribute (ASP.NET Core infers `IFormFile` as form-bound automatically), and
+`MotorPortal.API/Swagger/FileUploadOperationFilter.cs` renders the resulting multipart/form-data
+request body. None of this changes the wire format — the same form field names are still used.
+
 ### Verifying it works
 
 ```bash
@@ -138,6 +147,13 @@ rather than re-implemented in C#.
 | POST | `/api/batches/{id}/bulk-print` | Generates a certificate PDF for every policy in the batch and advances status to PRINTED. |
 | POST | `/api/policies/{id}/certificate` | (Re)generates the policy's certificate PDF (QuestPDF) under `wwwroot/certificates/{id}.pdf` and upserts `policy_certificate`. |
 | GET | `/api/policies/{id}/certificate` | Streams the certificate PDF, generating it on-demand if missing. |
+| GET | `/api/batches?fromDate=&toDate=` | Per-batch summary (optional date-range filter on `batch_master.created_on`): total/valid/invalid records, records still pending processing (VALID but no proposal yet), proposals without a PROCESSED payment, and proposals with one. |
+| GET | `/api/batches/summary-counters?fromDate=&toDate=` | The same counters summed across every batch matching the date filter, for dashboard cards. |
+| GET | `/api/master-policies` | Dropdown list of master policies (`masterPolicyId`, `masterPolicyNo`, `customerNo`, `cdbgNo`, `productId`). |
+| GET | `/api/master-policies/{id}/cd-balance` | Live read of `master_policy.cd_balance` for one master policy. |
+| POST | `/api/reports/policy-issue` | Body `{ fromDate, toDate }`. Queries `"SGInsurance".vw_policy_issue_report` filtered by Issued Date, writes a `report_log` row (`report_type = POLICY_ISSUE`), and streams a generated `.xlsx` (ClosedXML) with the view's exact columns. |
+| GET | `/api/policies/search?engineNo=&chassisNo=&tcNo=&policyNo=` | Searches `policy_master` (joined through `proposal_master` → `batch_detail` for `tcNo`, which only exists on `batch_detail`). At least one parameter is required (400 otherwise). |
+| POST | `/api/policies/cancel-upload` | Multipart Excel upload with a single `POLICY_NO` column. Cancels each existing, not-already-cancelled `policy_master` row (status → `CANCELLED`, one `audit_log` row per success) and reports the rest as rejected (`"Policy not found"` / `"Policy already cancelled"`) — never all-or-nothing. |
 
 ### Premium/GST configuration
 
@@ -168,4 +184,4 @@ gateway later only requires a new class implementing `IPfGatewayService`.
 - [x] Solution/project scaffolding, EF Core + Npgsql, JWT auth, Swagger, health check
 - [x] Excel upload, batch validation/premium/GST/proposal orchestration
 - [x] Payment tagging, policy generation, certificate PDF, bulk print
-- [ ] Batch summary, CD balance, reports, search & print, policy cancel, audit logging
+- [x] Batch summary, CD balance, reports, search & print, policy cancel, audit logging
