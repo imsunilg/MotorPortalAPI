@@ -41,10 +41,10 @@ for the complete endpoint reference this README summarizes).
 Project references: `API -> Application`, `API -> Infrastructure`,
 `Infrastructure -> Application -> Domain`.
 
-The database (PostgreSQL, schema `SGInsurance`) is owned by
+The database (PostgreSQL, schema `motorportal`) is owned by
 **MotorPortalDB** and is **database-first**: all tables/columns already
 exist with lowercase snake_case names. EF Core maps to that exact schema
-via Fluent API (`HasDefaultSchema("SGInsurance")` plus explicit
+via Fluent API (`HasDefaultSchema("motorportal")` plus explicit
 `.ToTable(...)` / `.HasColumnName(...)` on every entity). This app does
 **not** run EF Core migrations against the database — `dotnet-ef` is kept
 available only as tooling for future schema-diff work. Business logic that
@@ -110,7 +110,7 @@ The product code (e.g. `CLASS_E`) is looked up from
 ## How to run locally
 
 Prerequisites: .NET 8 SDK, PostgreSQL 16 running locally with
-`motorportal`/`SGInsurance` already created and seeded (see
+`motorportal`/`motorportal` already created and seeded (see
 **MotorPortalDB**, or MotorPortalDOC's
 [`docs/setup-guide.md`](https://github.com/imsunilg/MotorPortalDOC/blob/main/docs/setup-guide.md)
 for the full from-zero sequence across all repos).
@@ -217,7 +217,7 @@ MotorPortalDOC's
 | GET | `/api/batches/summary-counters?fromDate=&toDate=` | The same counters summed across every batch matching the date filter, for dashboard cards. |
 | GET | `/api/master-policies` | Dropdown list of master policies (`masterPolicyId`, `masterPolicyNo`, `customerNo`, `cdbgNo`, `productId`). |
 | GET | `/api/master-policies/{id}/cd-balance` | Live read of `master_policy.cd_balance` for one master policy. |
-| POST | `/api/reports/policy-issue` | Body `{ fromDate, toDate }`. Queries `"SGInsurance".vw_policy_issue_report` filtered by Issued Date, writes a `report_log` row (`report_type = POLICY_ISSUE`), and streams a generated `.xlsx` (ClosedXML) with the view's exact columns. |
+| POST | `/api/reports/policy-issue` | Body `{ fromDate, toDate }`. Queries `"motorportal".vw_policy_issue_report` filtered by Issued Date, writes a `report_log` row (`report_type = POLICY_ISSUE`), and streams a generated `.xlsx` (ClosedXML) with the view's exact columns. |
 | GET | `/api/policies/search?engineNo=&chassisNo=&tcNo=&policyNo=` | Searches `policy_master` (joined through `proposal_master` → `batch_detail` for `tcNo`, which only exists on `batch_detail`). At least one parameter is required (400 otherwise). |
 | POST | `/api/policies/cancel-upload` | Multipart Excel upload with a single `POLICY_NO` column. Cancels each existing, not-already-cancelled `policy_master` row (status → `CANCELLED`, one `audit_log` row per success) and reports the rest as rejected (`"Policy not found"` / `"Policy already cancelled"`) — never all-or-nothing. |
 

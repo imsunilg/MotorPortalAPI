@@ -11,7 +11,7 @@ namespace MotorPortal.Infrastructure.Services;
 /// </summary>
 internal static class PgFunctions
 {
-    private const string Schema = "\"SGInsurance\"";
+    private const string Schema = "\"motorportal\"";
 
     public static async Task<decimal> CalculateNetPremiumAsync(AppDbContext context, decimal basePremium, decimal addonPremium, decimal discount, CancellationToken cancellationToken)
     {
@@ -87,9 +87,9 @@ internal static class PgFunctions
             new object[] { new NpgsqlParameter("p0", proposalId) }, cancellationToken);
     }
 
-    // The SGInsurance functions/procedures reference their own tables unqualified, relying on
-    // search_path rather than being schema-qualified internally. The default connection search_path
-    // is "$user", public, which doesn't include the (mixed-case, quoted) SGInsurance schema. We set it
+    // The motorportal schema's functions/procedures reference their own tables unqualified,
+    // relying on search_path rather than being schema-qualified internally. The default
+    // connection search_path is "$user", public, which doesn't include motorportal. We set it
     // explicitly and keep the same physical connection open across both statements so a pooled
     // connection swap between the SET and the CALL can't undo it.
     private static async Task ExecuteCallAsync(AppDbContext context, string commandText, object[] parameters, CancellationToken cancellationToken)
@@ -102,7 +102,7 @@ internal static class PgFunctions
 
         try
         {
-            await context.Database.ExecuteSqlRawAsync("SET search_path TO \"SGInsurance\", public", cancellationToken);
+            await context.Database.ExecuteSqlRawAsync("SET search_path TO \"motorportal\", public", cancellationToken);
             await context.Database.ExecuteSqlRawAsync(commandText, parameters, cancellationToken);
         }
         finally
@@ -127,7 +127,7 @@ internal static class PgFunctions
         {
             await using (var setCmd = connection.CreateCommand())
             {
-                setCmd.CommandText = "SET search_path TO \"SGInsurance\", public";
+                setCmd.CommandText = "SET search_path TO \"motorportal\", public";
                 await setCmd.ExecuteNonQueryAsync(cancellationToken);
             }
 

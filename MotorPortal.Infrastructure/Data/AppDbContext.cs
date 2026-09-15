@@ -5,7 +5,7 @@ namespace MotorPortal.Infrastructure.Data;
 
 public class AppDbContext : DbContext
 {
-    private const string Schema = "SGInsurance";
+    private const string Schema = "motorportal";
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {

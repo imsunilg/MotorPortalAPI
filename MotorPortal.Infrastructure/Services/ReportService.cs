@@ -56,7 +56,7 @@ public class ReportService : IReportService
         try
         {
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = "SELECT * FROM \"SGInsurance\".vw_policy_issue_report " +
+            cmd.CommandText = "SELECT * FROM \"motorportal\".vw_policy_issue_report " +
                                "WHERE \"Issued Date\" >= @fromDate AND \"Issued Date\" < @toDateExclusive " +
                                "ORDER BY \"Issued Date\"";
             cmd.Parameters.Add(new NpgsqlParameter("fromDate", fromDate.ToDateTime(TimeOnly.MinValue)));
