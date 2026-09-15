@@ -1,0 +1,19 @@
+{
+  "DetailedErrors": true,
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore": "Information"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=SGInsuranceDB;Username=postgres;Password=284228"
+  },
+  "Jwt": {
+    "Issuer": "MotorPortalAPI",
+    "Audience": "MotorPortalWEB",
+    "SigningKey": "dev-only-super-secret-signing-key-change-me-32chars-min!",
+    "ExpiryMinutes": 60
+  }
+}
