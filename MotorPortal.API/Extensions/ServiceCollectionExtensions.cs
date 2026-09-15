@@ -127,6 +127,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPfGatewayService, MockPfService>();
         services.AddScoped<IBatchSummaryService, BatchSummaryService>();
         services.AddScoped<IMasterPolicyService, MasterPolicyService>();
+        services.AddScoped<IReportService, ReportService>();
 
         return services;
     }
