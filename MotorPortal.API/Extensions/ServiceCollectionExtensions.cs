@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -64,8 +65,9 @@ public static class ServiceCollectionExtensions
         {
             options.AddPolicy(CorsPolicyName, policy =>
             {
-                // Local dev: allow any localhost/127.0.0.1 origin regardless of port or scheme,
-                // since the WEB app's dev-server port can change (e.g. ng serve --port 4795).
+                // Local dev: allow localhost/127.0.0.1 plus any private-LAN origin (e.g. a
+                // phone on the same Wi-Fi hitting http://192.168.x.x:4795), regardless of
+                // port or scheme, since the WEB app's dev-server port/host can vary.
                 policy.SetIsOriginAllowed(origin =>
                     {
                         if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
@@ -73,7 +75,12 @@ public static class ServiceCollectionExtensions
                             return false;
                         }
 
-                        return uri.Host is "localhost" or "127.0.0.1";
+                        if (uri.Host is "localhost" or "127.0.0.1")
+                        {
+                            return true;
+                        }
+
+                        return IPAddress.TryParse(uri.Host, out var ip) && IsPrivateNetworkAddress(ip);
                     })
                     .AllowAnyHeader()
                     .AllowAnyMethod();
@@ -84,6 +91,28 @@ public static class ServiceCollectionExtensions
     }
 
     public static string CorsPolicy => CorsPolicyName;
+
+    private static bool IsPrivateNetworkAddress(IPAddress ip)
+    {
+        if (ip.IsIPv4MappedToIPv6)
+        {
+            ip = ip.MapToIPv4();
+        }
+
+        var bytes = ip.GetAddressBytes();
+        if (bytes.Length != 4)
+        {
+            return false;
+        }
+
+        return bytes[0] switch
+        {
+            10 => true,
+            172 => bytes[1] is >= 16 and <= 31,
+            192 => bytes[1] == 168,
+            _ => false
+        };
+    }
 
     public static IServiceCollection AddMotorPortalSwagger(this IServiceCollection services)
     {
