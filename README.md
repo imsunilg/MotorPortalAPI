@@ -118,10 +118,54 @@ catches unhandled exceptions and returns a consistent
 Structured JSON logging is provided via Serilog, including the ASP.NET Core request id/trace id on
 every request (`UseSerilogRequestLogging`).
 
+## Business-logic endpoints
+
+All endpoints below require a JWT (`Authorization: Bearer <token>`). The DB-side PL/pgSQL
+functions/procedures (`fn_calculate_net_premium`, `fn_calculate_gst`, `fn_generate_proposal_no`,
+`fn_generate_policy_no`, `sp_process_batch_validation`, `sp_tag_payment`,
+`sp_advance_batch_status`) are called via raw SQL from `MotorPortal.Infrastructure.Services.PgFunctions`
+rather than re-implemented in C#.
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/batches/upload` | Multipart Excel upload (`productId`, `functionId`, `file`). Validates structure/rows via ClosedXML; inserts nothing if invalid. Creates `batch_master` (UPLOADED) + `batch_detail` (PENDING) rows on success. |
+| GET | `/api/batches/{id}/sample-template` | Downloads a sample `.xlsx` with the required header row + example rows. |
+| POST | `/api/batches/{id}/process` | Runs validation (`sp_process_batch_validation`) then premium → GST → proposal generation for all VALID records, advancing `batch_master.status` through PREMIUM_CALCULATED → GST_CALCULATED → PROPOSAL_CREATED. |
+| GET | `/api/batches/{id}/status` | Current batch row plus live per-stage counts (valid/invalid, premium, GST, proposals, processed payments, policies). |
+| GET | `/api/batches/{id}/invalid-records` | Lists `invalid_records` for the batch. |
+| DELETE | `/api/batches/{id}/invalid-records` | Clears `invalid_records` for the batch and zeroes `batch_master.invalid_records`. |
+| POST | `/api/batches/{id}/payments` | Tags payment (`sp_tag_payment`) for every proposal in the batch without a processed payment yet. Insufficient-CD-balance and other DB errors are caught per-case and reported, not thrown as 500s. Generates `policy_master` rows for newly-successful payments and advances batch status through PAYMENT_PENDING → PAYMENT_PROCESSED → POLICY_CREATED as applicable. |
+| POST | `/api/batches/{id}/bulk-print` | Generates a certificate PDF for every policy in the batch and advances status to PRINTED. |
+| POST | `/api/policies/{id}/certificate` | (Re)generates the policy's certificate PDF (QuestPDF) under `wwwroot/certificates/{id}.pdf` and upserts `policy_certificate`. |
+| GET | `/api/policies/{id}/certificate` | Streams the certificate PDF, generating it on-demand if missing. |
+
+### Premium/GST configuration
+
+`appsettings.json` carries the per-product premium inputs and the GST rate used by
+`ProcessBatchAsync` — these are read from configuration, never hardcoded:
+
+```json
+"GstRate": 18.0,
+"PremiumRules": {
+  "CLASS_E": { "BasePremium": 12000, "AddonPremium": 800, "Discount": 200 },
+  "CLASS_F": { "BasePremium": 15000, "AddonPremium": 1000, "Discount": 300 },
+  "EICHER":  { "BasePremium": 20000, "AddonPremium": 1500, "Discount": 500 }
+}
+```
+
+The product code (e.g. `CLASS_E`) is looked up from `batch_master.product_id -> product_master.product_code`.
+
+### Mock PF gateway
+
+`IPfGatewayService` / `MockPfService` (`MotorPortal.Infrastructure/Services/MockPfService.cs`)
+simulates the external payment-facilitator confirmation call (`Task.Delay` + a generated
+confirmation token) ahead of the DB-side `sp_tag_payment` call. Swapping in a real HTTP-backed
+gateway later only requires a new class implementing `IPfGatewayService`.
+
 ## Progress
 
 - [x] Bootstrap (ground rules, README, .gitignore)
 - [x] Solution/project scaffolding, EF Core + Npgsql, JWT auth, Swagger, health check
-- [ ] Excel upload, batch validation/premium/GST/proposal orchestration
-- [ ] Payment tagging, policy generation, certificate PDF, bulk print
+- [x] Excel upload, batch validation/premium/GST/proposal orchestration
+- [x] Payment tagging, policy generation, certificate PDF, bulk print
 - [ ] Batch summary, CD balance, reports, search & print, policy cancel, audit logging
