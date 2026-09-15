@@ -64,7 +64,17 @@ public static class ServiceCollectionExtensions
         {
             options.AddPolicy(CorsPolicyName, policy =>
             {
-                policy.WithOrigins("http://localhost:4200")
+                // Local dev: allow any localhost/127.0.0.1 origin regardless of port or scheme,
+                // since the WEB app's dev-server port can change (e.g. ng serve --port 4795).
+                policy.SetIsOriginAllowed(origin =>
+                    {
+                        if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                        {
+                            return false;
+                        }
+
+                        return uri.Host is "localhost" or "127.0.0.1";
+                    })
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             });

@@ -123,7 +123,7 @@ dotnet run --project MotorPortal.API
 
 The API listens on the URL printed at startup (see
 `MotorPortal.API/Properties/launchSettings.json`, typically
-`http://localhost:5287` when run with `dotnet run`).
+`http://localhost:5795` when run with `dotnet run`).
 
 ### Swagger UI
 
@@ -149,18 +149,18 @@ format — the same form field names are still used.
 
 ```bash
 # Health check — real DB round trip, no auth required
-curl http://localhost:5287/api/health
+curl http://localhost:5795/api/health
 
 # Login — returns a real JWT
-curl -X POST http://localhost:5287/api/auth/login \
+curl -X POST http://localhost:5795/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 
 # Protected endpoint without a token -> 401
-curl -i http://localhost:5287/api/secure-ping
+curl -i http://localhost:5795/api/secure-ping
 
 # Protected endpoint with a token -> 200
-curl http://localhost:5287/api/secure-ping -H "Authorization: Bearer <token>"
+curl http://localhost:5795/api/secure-ping -H "Authorization: Bearer <token>"
 ```
 
 `GET /api/secure-ping` is a trivial `[Authorize]`-protected endpoint kept
