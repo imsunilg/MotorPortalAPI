@@ -8,7 +8,7 @@
     }
   },
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=SGInsuranceDB;Username=postgres;Password=284228"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=motorportal;Username=postgres;Password=284228"
   },
   "Jwt": {
     "Issuer": "MotorPortalAPI",

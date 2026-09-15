@@ -78,7 +78,7 @@ The example file already matches the documented local Postgres setup:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=SGInsuranceDB;Username=postgres;Password=284228"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=motorportal;Username=postgres;Password=284228"
   },
   "Jwt": {
     "Issuer": "MotorPortalAPI",
@@ -110,7 +110,7 @@ The product code (e.g. `CLASS_E`) is looked up from
 ## How to run locally
 
 Prerequisites: .NET 8 SDK, PostgreSQL 16 running locally with
-`SGInsuranceDB`/`SGInsurance` already created and seeded (see
+`motorportal`/`SGInsurance` already created and seeded (see
 **MotorPortalDB**, or MotorPortalDOC's
 [`docs/setup-guide.md`](https://github.com/imsunilg/MotorPortalDOC/blob/main/docs/setup-guide.md)
 for the full from-zero sequence across all repos).
