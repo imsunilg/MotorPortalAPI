@@ -1,6 +1,9 @@
 using MotorPortal.API.Extensions;
 using MotorPortal.API.Middleware;
+using QuestPDF.Infrastructure;
 using Serilog;
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
@@ -10,6 +13,8 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+
+    Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "certificates"));
 
     builder.Host.UseSerilog((context, services, configuration) =>
     {
@@ -43,6 +48,8 @@ try
     }
 
     app.UseHttpsRedirection();
+
+    app.UseStaticFiles();
 
     app.UseCors(ServiceCollectionExtensions.CorsPolicy);
 
