@@ -101,6 +101,8 @@ public static class ServiceCollectionExtensions
             {
                 { securityScheme, Array.Empty<string>() }
             });
+
+            options.OperationFilter<MotorPortal.API.Swagger.FileUploadOperationFilter>();
         });
 
         return services;
@@ -123,6 +125,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPaymentTaggingService, PaymentTaggingService>();
         services.AddScoped<IPolicyCertificateService, PolicyCertificateService>();
         services.AddScoped<IPfGatewayService, MockPfService>();
+        services.AddScoped<IBatchSummaryService, BatchSummaryService>();
+        services.AddScoped<IMasterPolicyService, MasterPolicyService>();
 
         return services;
     }

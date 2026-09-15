@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MotorPortal.API.Extensions;
+using MotorPortal.API.Models;
 using MotorPortal.Application.Interfaces;
 
 namespace MotorPortal.API.Controllers;
@@ -14,6 +15,7 @@ public class BatchesController : ControllerBase
     private readonly IBatchProcessingService _batchProcessingService;
     private readonly IPaymentTaggingService _paymentTaggingService;
     private readonly IPolicyCertificateService _policyCertificateService;
+    private readonly IBatchSummaryService _batchSummaryService;
     private readonly ILogger<BatchesController> _logger;
 
     public BatchesController(
@@ -21,28 +23,44 @@ public class BatchesController : ControllerBase
         IBatchProcessingService batchProcessingService,
         IPaymentTaggingService paymentTaggingService,
         IPolicyCertificateService policyCertificateService,
+        IBatchSummaryService batchSummaryService,
         ILogger<BatchesController> logger)
     {
         _excelBatchService = excelBatchService;
         _batchProcessingService = batchProcessingService;
         _paymentTaggingService = paymentTaggingService;
         _policyCertificateService = policyCertificateService;
+        _batchSummaryService = batchSummaryService;
         _logger = logger;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetBatchSummary([FromQuery] DateOnly? fromDate, [FromQuery] DateOnly? toDate, CancellationToken cancellationToken)
+    {
+        var summary = await _batchSummaryService.GetBatchSummaryAsync(fromDate, toDate, cancellationToken);
+        return Ok(summary);
+    }
+
+    [HttpGet("summary-counters")]
+    public async Task<IActionResult> GetSummaryCounters([FromQuery] DateOnly? fromDate, [FromQuery] DateOnly? toDate, CancellationToken cancellationToken)
+    {
+        var counters = await _batchSummaryService.GetSummaryCountersAsync(fromDate, toDate, cancellationToken);
+        return Ok(counters);
     }
 
     [HttpPost("upload")]
     [RequestSizeLimit(20_000_000)]
-    public async Task<IActionResult> Upload([FromForm] int productId, [FromForm] int functionId, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    public async Task<IActionResult> Upload([FromForm] BatchUploadRequest request, CancellationToken cancellationToken)
     {
-        if (file is null || file.Length == 0)
+        if (request.File is null || request.File.Length == 0)
         {
             return BadRequest(new { message = "A file is required." });
         }
 
         var userId = User.GetUserId();
 
-        await using var stream = file.OpenReadStream();
-        var result = await _excelBatchService.UploadAsync(stream, file.FileName, productId, functionId, userId, cancellationToken);
+        await using var stream = request.File.OpenReadStream();
+        var result = await _excelBatchService.UploadAsync(stream, request.File.FileName, request.ProductId, request.FunctionId, userId, cancellationToken);
 
         if (!result.IsValid)
         {
